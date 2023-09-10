@@ -9,13 +9,13 @@ interface CommunityCounterEvents {
 }
 
 /// @title CommunityCounter
-/// @notice A counter contract which is community owned, optionally anonymous with relayer, with socialized costs. It is a reaction
-/// to OFAC sanciationed counter contracts such as SafeCounter.
+/// @notice A counter contract which is community owned, optionally anonymous, with socialized costs. It is a reaction
+/// to permissioned counter contracts such as SafeCounter.
 contract CommunityCounter is CommunityCounterEvents {
-    error NotIncrementOrDecrement();
-    error GasLimitTooHigh();
     error GasFeeTooHigh(uint256 gasFee);
+    error GasLimitTooHigh();
     error NotFromEntryPoint();
+    error NotIncrementOrDecrement();
 
     INonceManager internal _entryPoint;
     uint256 internal _maxGasFee;
@@ -46,7 +46,7 @@ contract CommunityCounter is CommunityCounterEvents {
 
     /// @notice Validate a user operation which can only call the increment or decrement methods
     /// on this contract.
-    /// @dev This function is only callable by the entrypoint. Note: the signature is not checked
+    /// @dev This function is only callable by the entrypoint. Note: the hash is not checked
     /// as we allow anyone to call this function as long as it passes the entrypoint checks.
     /// @param userOp The user operation to validate.
     /// @param missingAccountFunds The amount of funds required to pay for the user operation if there isn't
@@ -61,7 +61,7 @@ contract CommunityCounter is CommunityCounterEvents {
             revert NotIncrementOrDecrement();
         }
 
-        // We want to enforce a maximum gas cost (limit * gas fee) for each UserPp to restrict malicious users from
+        // We want to enforce a maximum gas cost (limit * gas fee) for each UserOp to restrict malicious users from
         // abusing socialized gas costs by benevolent users.
         uint256 gasLimit = userOp.callGasLimit + userOp.verificationGasLimit + userOp.preVerificationGas;
         if (gasLimit > 70_000) {
